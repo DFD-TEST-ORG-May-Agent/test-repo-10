@@ -1,0 +1,90 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install linters
+        run: pip install flake8 pylint
+      - name: Run flake8
+        run: flake8 src/python/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        continue-on-error: true
+
+  lint-javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install ESLint
+        run: npm install -g eslint
+      - name: Run ESLint
+        run: eslint src/nodejs/*.js --no-eslintrc --env node,es2021
+        continue-on-error: true
+
+  lint-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install ESLint
+        run: npm install -g eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin typescript
+      - name: Run ESLint
+        run: eslint src/typescript/*.ts --no-eslintrc --parser @typescript-eslint/parser
+        continue-on-error: true
+
+  lint-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Run Go vet
+        working-directory: src/go
+        run: go vet ./...
+        continue-on-error: true
+
+  lint-ruby:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - name: Install RuboCop
+        run: gem install rubocop
+      - name: Run RuboCop
+        run: rubocop src/ruby/ --format simple
+        continue-on-error: true
+
+  lint-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run Clippy
+        working-directory: src/rust
+        run: cargo clippy -- -W warnings
+        continue-on-error: true
